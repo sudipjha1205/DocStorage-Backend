@@ -106,7 +106,6 @@ postgres==4.0
 progressbar==2.5
 prometheus-client==0.14.1
 prompt-toolkit==3.0.30
-protobuf==4.21.12
 psutil==5.9.1
 psycopg2-binary==2.9.3
 psycopg2-pool==1.1
