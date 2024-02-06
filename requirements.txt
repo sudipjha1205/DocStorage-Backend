@@ -125,9 +125,7 @@ pyparsing==3.0.9
 pyRFC3339==1.1
 pyrsistent==0.18.1
 PySocks==1.7.1
-python-apt==2.0.1+ubuntu0.20.4.1
 python-dateutil==2.8.2
-python-debian==0.1.36+ubuntu1.1
 python-magic==0.4.16
 pytz==2022.1
 PyWavelets==1.4.1
@@ -138,8 +136,6 @@ redis==5.0.1
 requests==2.31.0
 requests-unixsocket==0.2.0
 rich==13.7.0
-ruamel.yaml==0.17.21
-ruamel.yaml.clib==0.2.6
 schedule==1.2.1
 scipy==1.8.1
 seaborn==0.11.2
@@ -152,7 +148,6 @@ sniffio==1.2.0
 soccerdata==1.5.1
 sortedcontainers==2.4.0
 sos==4.5.6
-soupsieve==2.3.2.post1
 SQLAlchemy==2.0.16
 sqlparse==0.4.4
 ssh-import-id==5.10
