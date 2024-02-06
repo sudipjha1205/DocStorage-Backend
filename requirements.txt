@@ -151,7 +151,6 @@ SQLAlchemy==2.0.16
 sqlparse==0.4.4
 ssh-import-id==5.10
 stack-data==0.3.0
-system-service==0.3
 systemd-python==234
 terminado==0.15.0
 tinycss2==1.1.1
