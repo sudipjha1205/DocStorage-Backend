@@ -160,7 +160,6 @@ trio==0.22.0
 trio-websocket==0.10.3
 typing_extensions==4.6.3
 tzdata==2023.3
-ufw==0.36
 unattended-upgrades==0.1
 undetected-chromedriver==3.5.4
 unicode==2.9
