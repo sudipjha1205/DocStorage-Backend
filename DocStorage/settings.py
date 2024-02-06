@@ -23,7 +23,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vn(jqf_)b-2%^g0_mtgr9%vdg#4ey(bbz!26z-8c*0o$@m8@u!'
+#SECRET_KEY = 'django-insecure-vn(jqf_)b-2%^g0_mtgr9%vdg#4ey(bbz!26z-8c*0o$@m8@u!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -132,7 +132,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000','*',
+    'http://localhost:3000',
 ]
 
 
@@ -171,5 +171,6 @@ PASSWORD_HASHERS = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
 import django_heroku
 django_heroku.settings(locals())
