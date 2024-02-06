@@ -42,7 +42,6 @@ fastjsonschema==2.16.1
 filelock==3.7.1
 fonttools==4.34.4
 future==0.18.2
-gpg==1.13.1
 greenlet==2.0.2
 h11==0.14.0
 html5lib==1.1
