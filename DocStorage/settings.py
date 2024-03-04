@@ -139,6 +139,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     'https://docstorage-9963fe18c8da.herokuapp.com',
+    'https://docstorage-frontend-0ab4f772c62b.herokuapp.com',
     'http://localhost:3000',
 ]
 
