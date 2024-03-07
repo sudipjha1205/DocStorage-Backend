@@ -10,6 +10,8 @@ urlpatterns = [
         path('csrf_token/', get_csrf_token, name='get_csrf_token'),
         path('upload-pdf/', upload_pdf, name='upload_pdf'),
         path('get-pdf/<str:consumer_number>/', get_kyc, name='get_pdf_by_consumer_number'),
+        path('store_pdf/',store_pdf,name='store_pdf_in_S3'),
+        path('retreive_pdf/',retrieve_pdf,name='Retreive_pdf_from_S3'),
         ]
 
 

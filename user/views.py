@@ -1,24 +1,108 @@
+import jwt
 import json
-from django.http import JsonResponse,HttpResponse,Http404
+import boto3
+import uuid
+from django.conf import settings
+from django.http import JsonResponse,HttpResponse,Http404, HttpResponseBadRequest
 from django.middleware.csrf import get_token
-from rest_framework.exceptions import ValidationError
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from rest_framework.permissions import AllowAny
-from .models import CustomUser,KYC
-from .serializers import UserSerializer
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from rest_framework.views import APIView
-from .EmailBackend import EmailBackend
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import ValidationError
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
+
+from .models import CustomUser,KYC,UploadedFile
+from .serializers import UserSerializer
+from .EmailBackend import EmailBackend
+
+
+AWS_ACCESS_KEY = settings.AWS_ACCESS_KEY_ID
+AWS_SECRET_KEY = settings.AWS_SECRET_ACCESS_KEY
+AWS_REGION_NAME = settings.AWS_S3_REGION_NAME
+
+JWT_SECRET_KEY = settings.SECRET_KEY
+
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
+    region_name = AWS_REGION_NAME
+    )
+
+S3_BUCKET_NAME = 'docstoraage'
+
+
+@csrf_exempt
+@require_POST
+def store_pdf(request):
+    if request.method == 'POST':
+        pdf_file = request.FILES.get('pdf_file')
+        consumer_number = request.POST.get('consumer_number')
+        uploader = request.POST.get('user')
+
+        #Creating a file_name to store the pdf with a unique key
+        file_name = f'{uploader}/{consumer_number}.pdf'
+        try:
+            uploaded_file = UploadedFile.objects.create(
+                consumer_number = consumer_number,
+                uploader = uploader,
+                file_key = file_name
+            )
+
+            s3_client.upload_fileobj(pdf_file, S3_BUCKET_NAME, file_name)
+
+            return JsonResponse({'message': 'File Uploaded Successfully!!'},status=200)
+            #print("file uploaded")
+        except Exception as e:
+            if "Duplicate entry" in str(e):
+                return JsonResponse({'message':'Already Present'},status=403)
+            else:
+                return JsonResponse({'message': "The error is '{}'".format(e)})
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed for this endpoint')
+    
+
+def retrieve_pdf(request):
+    if request.method == 'GET':
+        consumer_number = request.GET.get('consumer_number')
+        uploader = request.GET.get('user')
+        
+        # Retrieve the file key from your database based on the consumer number and user
+        # Assuming you have a model named 'UploadedFile'
+        uploaded_file = UploadedFile.objects.filter(consumer_number=consumer_number, uploader=uploader).first()
+        print("retreived from the database")
+
+        # Check if the file exists and if the user has permission to access it
+        if uploaded_file:
+            print("inside the uploaded file if condition")
+            consumer_number = uploaded_file.consumer_number
+            file_name = f'{uploader}/{consumer_number}.pdf'
+
+            # Generate a presigned URL to allow temporary access to the file
+            url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': S3_BUCKET_NAME, 'Key': file_name},
+                ExpiresIn=3600  # URL expiration time in seconds (adjust as needed)
+            )
+
+            return JsonResponse({'url': url})
+        else:
+            return HttpResponseBadRequest('File not found or you do not have permission to access it.')
+    else:
+        return HttpResponseBadRequest('Only GET requests are allowed for this endpoint.')
+    
 
 class TokenObtainView(APIView):
     def post(self, request, *args, **kwargs):
@@ -68,20 +152,25 @@ def get_csrf_token(request):
 
 @api_view(['POST'])
 def login(request):
+    print("Inside login function")
     email = request.data.get('email')
     password = request.data.get('password')
 
     user = authenticate(username=email,password=password)
     print(user)
 
-    if user is not None:
-        refresh = RefreshToken.for_user(user)
-        return JsonResponse({
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh),
-        }, status=status.HTTP_200_OK)
-    else:
-        return JsonResponse({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        if user is not None:
+            refresh = RefreshToken.for_user(user)
+            print("refresh", refresh)
+            return JsonResponse({
+                'access_token': str(refresh.access_token),
+                'refresh_token': str(refresh),
+            }, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        print(e)
 
 
 @api_view(['POST'])

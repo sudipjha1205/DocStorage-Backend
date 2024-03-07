@@ -34,3 +34,11 @@ class KYC(models.Model):
 
     def __str__(self):
         return f"{self.consumer_no} - {self.pdf_file}"
+
+class UploadedFile(models.Model):
+    consumer_number = models.CharField(primary_key=True,max_length=255)
+    uploader = models.CharField(max_length=255)
+    file_key = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.consumer_number} - {self.pdf_file} uploaded by {self.uploader}"

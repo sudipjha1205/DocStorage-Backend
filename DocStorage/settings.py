@@ -23,7 +23,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-#SECRET_KEY = 'django-insecure-vn(jqf_)b-2%^g0_mtgr9%vdg#4ey(bbz!26z-8c*0o$@m8@u!'
+SECRET_KEY = 'django-insecure-vn(jqf_)b-2%^g0_mtgr9%vdg#4ey(bbz!26z-8c*0o$@m8@u!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -32,6 +32,8 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 INSTALLED_APPS = [
     'user.apps.UserConfig',
@@ -43,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -76,10 +79,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DocStorage.wsgi.application'
 
+## S3 BUCKETS CONFIG ##
+
+AWS_ACCESS_KEY_ID = 'AKIAU6GDYLN2T7OT5EXQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_S3_REGION_NAME = 'ap-south-1'  # Correct AWS region name
+AWS_STORAGE_BUCKET_NAME = 'docstoraage'  # Correct bucket name
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_S3_FILE_OVERWRITE = False  # Set to False if you want to have extra characters appended
+AWS_DEFAULT_ACL = None  # File will inherit bucket’s permissions
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+
+## DATABASE CONFIGURATIONS ##
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
 
 DATABASES = {
     'default': {
@@ -143,7 +159,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
 ]
 
-
+'''
 LOGGING = {
    'version': 1,
    'disable_existing_loggers': False,
@@ -162,10 +178,11 @@ LOGGING = {
       },
    },
 }
-
+'''
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication'
     )
 }
 
