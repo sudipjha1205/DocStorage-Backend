@@ -102,7 +102,65 @@ def retrieve_pdf(request):
             return HttpResponseBadRequest('File not found or you do not have permission to access it.')
     else:
         return HttpResponseBadRequest('Only GET requests are allowed for this endpoint.')
+
+
+def delete_pdf(request):
+    if request.method == 'GET':
+        consumer_number = request.GET.get('consumer_number')
+        uploader = request.GET.get('user')
+        print("consumer number and user", consumer_number,uploader)
+        
+        try:
+            try:
+                deleted_file = UploadedFile.objects.filter(consumer_number=consumer_number, uploader=uploader).first()
+                print(deleted_file)
+            except Exception as e:
+                print(e)
+
+            if deleted_file:
+                deleted_file.delete()
     
+                file_name = f"{uploader}/{consumer_number}.pdf"
+                
+                s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=file_name)
+                print("deleted the consumer {}".format(file_name))
+                return JsonResponse({'message':'Object deleted Successfully'})
+            else:
+                return JsonResponse({'message':'consumer number is not present'})
+        except Exception as e:
+            print("Failed to delete due to error: ",e)
+            return JsonResponse({'message':'Failed to delete the object'})
+    else:
+        return HttpResponseBadRequest("Only GET requests are allowed for this endpoint.")
+
+@csrf_exempt
+@require_POST
+def update_pdf(request):
+    if request.method == 'POST':
+        pdf_file = request.FILES.get('pdf_file')
+        consumer_number = request.POST.get('consumer_number')
+        uploader = request.POST.get('user')
+
+        #Creating a file_name to store the pdf with a unique key
+        file_name = f'{uploader}/{consumer_number}.pdf'
+        try:
+            #row_to_be_updated = UploadedFile.objects.get(consumer_number=consumer_number)
+            #row_to_be_updated.file_key = 
+
+            s3_client.upload_fileobj(pdf_file, S3_BUCKET_NAME, file_name)
+
+            return JsonResponse({'message': 'File Uploaded Successfully!!'},status=200)
+            #print("file uploaded")
+        except Exception as e:
+            print(e)
+            if "Duplicate entry" in str(e):
+                return JsonResponse({'message':'Already Present'},status=403)
+            else:
+                return JsonResponse({'message': "The error is '{}'".format(e)})
+    else:
+        return HttpResponseBadRequest('Only POST requests are allowed for this endpoint')
+
+
 
 class TokenObtainView(APIView):
     def post(self, request, *args, **kwargs):

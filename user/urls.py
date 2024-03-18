@@ -12,6 +12,8 @@ urlpatterns = [
         path('get-pdf/<str:consumer_number>/', get_kyc, name='get_pdf_by_consumer_number'),
         path('store_pdf/',store_pdf,name='store_pdf_in_S3'),
         path('retreive_pdf/',retrieve_pdf,name='Retreive_pdf_from_S3'),
+        path('delete_pdf/',delete_pdf,name='Delete PDF'),
+        path('update_pdf/',update_pdf,name='Update PDF'),
         ]
 
 
