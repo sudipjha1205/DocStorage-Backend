@@ -42,3 +42,13 @@ class UploadedFile(models.Model):
 
     def __str__(self):
         return f"{self.consumer_number} - {self.pdf_file} uploaded by {self.uploader}"
+
+class ActionsTaken(models.Model):
+    action_id = models.AutoField(primary_key=True)
+    consumer_number = models.CharField(max_length=255)
+    uploader = models.CharField(max_length=255)
+    action = models.CharField(max_length=255)
+    last_modified_time = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.consumer_number} {self.user} - {self.action} - {self.last_modified_time}"

@@ -14,6 +14,7 @@ urlpatterns = [
         path('retreive_pdf/',retrieve_pdf,name='Retreive_pdf_from_S3'),
         path('delete_pdf/',delete_pdf,name='Delete PDF'),
         path('update_pdf/',update_pdf,name='Update PDF'),
+        path('account_status/',account_status,name="Account Status"),
         ]
 
 

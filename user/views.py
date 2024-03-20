@@ -1,7 +1,9 @@
 import jwt
+import pytz
 import json
 import boto3
 import uuid
+
 from django.conf import settings
 from django.http import JsonResponse,HttpResponse,Http404, HttpResponseBadRequest
 from django.middleware.csrf import get_token
@@ -13,7 +15,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.views.decorators.http import require_POST
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404,render
+from django.core.serializers import serialize
+
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
@@ -23,8 +27,9 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
-from .models import CustomUser,KYC,UploadedFile
-from .serializers import UserSerializer
+from datetime import datetime
+from .models import CustomUser,KYC,UploadedFile,ActionsTaken
+from .serializers import *
 from .EmailBackend import EmailBackend
 
 
@@ -59,6 +64,18 @@ def store_pdf(request):
                 consumer_number = consumer_number,
                 uploader = uploader,
                 file_key = file_name
+            )
+
+            ist = pytz.timezone('Asia/Kolkata')
+
+            # Get the current datetime in IST
+            current_datetime = datetime.now(ist)
+
+            action_taken = ActionsTaken.objects.create(
+                consumer_number = consumer_number,
+                uploader = uploader,
+                action = "upload",
+                last_modified_time = current_datetime
             )
 
             s3_client.upload_fileobj(pdf_file, S3_BUCKET_NAME, file_name)
@@ -113,17 +130,26 @@ def delete_pdf(request):
         try:
             try:
                 deleted_file = UploadedFile.objects.filter(consumer_number=consumer_number, uploader=uploader).first()
-                print(deleted_file)
+                print("deleted file",type(deleted_file))
             except Exception as e:
                 print(e)
 
             if deleted_file:
                 deleted_file.delete()
-    
-                file_name = f"{uploader}/{consumer_number}.pdf"
                 
-                s3_client.delete_object(Bucket=S3_BUCKET_NAME, Key=file_name)
-                print("deleted the consumer {}".format(file_name))
+                ist = pytz.timezone('Asia/Kolkata')
+
+                # Get the current datetime in IST
+                current_datetime = datetime.now(ist)
+
+                action_taken = ActionsTaken.objects.create(
+                    consumer_number = consumer_number,
+                    uploader = uploader,
+                    action = "delete",
+                    last_modified_time = current_datetime
+                )
+
+    
                 return JsonResponse({'message':'Object deleted Successfully'})
             else:
                 return JsonResponse({'message':'consumer number is not present'})
@@ -144,13 +170,21 @@ def update_pdf(request):
         #Creating a file_name to store the pdf with a unique key
         file_name = f'{uploader}/{consumer_number}.pdf'
         try:
-            #row_to_be_updated = UploadedFile.objects.get(consumer_number=consumer_number)
-            #row_to_be_updated.file_key = 
+            ist = pytz.timezone('Asia/Kolkata')
+
+            # Get the current datetime in IST
+            current_datetime = datetime.now(ist)
+            current_datetime = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
+            action_taken = ActionsTaken.objects.create(
+                consumer_number = consumer_number,
+                uploader = uploader,
+                action = "update",
+                last_modified_time = current_datetime
+            )
 
             s3_client.upload_fileobj(pdf_file, S3_BUCKET_NAME, file_name)
 
             return JsonResponse({'message': 'File Uploaded Successfully!!'},status=200)
-            #print("file uploaded")
         except Exception as e:
             print(e)
             if "Duplicate entry" in str(e):
@@ -161,6 +195,23 @@ def update_pdf(request):
         return HttpResponseBadRequest('Only POST requests are allowed for this endpoint')
 
 
+def account_status(request):
+    if request.method == 'GET':
+        user = request.GET.get('user')
+
+        try:
+            total_count = UploadedFile.objects.filter(uploader=user).count()
+            all_rows = ActionsTaken.objects.filter(uploader=user)
+
+            serializer = ActionsTakenSerializer(all_rows,context={'request':request},many=True)
+
+            return JsonResponse({
+                'total_count': str(total_count),
+                'all_rows': serializer.data
+            })
+        except Exception as e:
+            print(e)
+            return JsonResponse({'message':'Error occured'})
 
 class TokenObtainView(APIView):
     def post(self, request, *args, **kwargs):
