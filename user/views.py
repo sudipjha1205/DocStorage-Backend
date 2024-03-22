@@ -70,7 +70,7 @@ def store_pdf(request):
 
             # Get the current datetime in IST
             current_datetime = datetime.now(ist)
-
+            current_datetime = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
             action_taken = ActionsTaken.objects.create(
                 consumer_number = consumer_number,
                 uploader = uploader,
@@ -141,7 +141,7 @@ def delete_pdf(request):
 
                 # Get the current datetime in IST
                 current_datetime = datetime.now(ist)
-
+                current_datetime = current_datetime.strftime('%Y-%m-%d %H:%M:%S')
                 action_taken = ActionsTaken.objects.create(
                     consumer_number = consumer_number,
                     uploader = uploader,
