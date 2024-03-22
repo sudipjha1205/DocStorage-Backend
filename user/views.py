@@ -201,7 +201,7 @@ def account_status(request):
 
         try:
             total_count = UploadedFile.objects.filter(uploader=user).count()
-            all_rows = ActionsTaken.objects.filter(uploader=user).order_by('last_modified_time')
+            all_rows = ActionsTaken.objects.filter(uploader=user).order_by('-last_modified_time')
 
             serializer = ActionsTakenSerializer(all_rows,context={'request':request},many=True)
 
