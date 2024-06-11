@@ -15,6 +15,8 @@ urlpatterns = [
         path('delete_pdf/',delete_pdf,name='Delete PDF'),
         path('update_pdf/',update_pdf,name='Update PDF'),
         path('account_status/',account_status,name="Account Status"),
+        path('reset_password/', reset_password, name="Password Reset Method"),
+        path('forget_password/', forget_password, name="Forget password link sending"),
         ]
 
 

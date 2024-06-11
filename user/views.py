@@ -17,6 +17,7 @@ from django.views.decorators.http import require_POST
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404,render
 from django.core.serializers import serialize
+from django.core.mail import send_mail
 
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -31,6 +32,7 @@ from datetime import datetime
 from .models import CustomUser,KYC,UploadedFile,ActionsTaken
 from .serializers import *
 from .EmailBackend import EmailBackend
+from DocStorage.settings import EMAIL_HOST_USER
 
 
 AWS_ACCESS_KEY = settings.AWS_ACCESS_KEY_ID
@@ -331,3 +333,52 @@ def get_kyc(request,consumer_number):
         return response
     except Http404:
         return JsonResponse({'error': 'Consumer number not found'}, status=404)
+
+
+@api_view(['PUT'])
+def reset_password(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    try:
+         user = User.objects.get(username=email)
+
+         user.set_password(password)
+
+         user.save()
+
+         return JsonResponse({'message': 'Password changed successfully'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({'message': 'Somethign went wrong!!!'})
+    
+@api_view(['POST'])
+def forget_password(request):
+    email = request.data.get('email')
+    print("email",email)
+
+    try:
+        user = User.objects.get(username=email)
+        print("user",user)
+        if user is None:
+            return JsonResponse( {'message': 'User with this email does not exist'})
+
+        # Construct the reset password link
+        reset_link = "http://localhost:3000/reset_password?email={}".format(email)  # Change example.com to your domain
+
+        user = User.objects.get(username=email)
+        # Construct the email body
+        email_body = f"Hello {user.first_name}  {user.last_name},\n\n"
+        email_body += "You requested to reset your password. Please click the link below to reset your password:\n\n"
+        email_body += f"\n\n{reset_link}\n\n"
+        email_body += "If you did not request this, please ignore this email.\n\n"
+        email_body += "Regards,\n2 Cents"
+
+        # Send the password reset email
+        send_mail("Password Reset",email_body, EMAIL_HOST_USER, [email],fail_silently=False)
+        
+        return JsonResponse({'message': 'Password reset email sent successfully'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"message": "Something went wrong"})
+
