@@ -284,6 +284,7 @@ def login(request):
         print(e)
 
 
+'''
 @api_view(['POST'])
 def registration(request):
     email = request.data.get('email')
@@ -295,6 +296,30 @@ def registration(request):
     if user is not None:
         return JsonResponse({'message': 'Registered Successfully'})
     return JsonResponse({'message': 'Registration Failed'})
+'''
+@api_view(['POST'])
+def registration(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    try:
+        user = User.objects.filter(username=email)
+
+        if user.exists():
+            return JsonResponse({"message":"User already exists"})
+
+        user = User.objects.create_user(username=email,password=password)
+        user.save()
+
+        activeUser = ActiveStatus.objects.create(user=email,paymentStatus='False')
+        print(user,activeUser)
+
+        if user is not None:
+            return JsonResponse({'message': 'Registered Successfully'})
+        return JsonResponse({'message': 'User already exists'})
+    except Exception as e:
+        print(e)
+        return JsonResponse({"message":"Resignation failed!! Please try again later!"})
 
 
 @csrf_exempt
