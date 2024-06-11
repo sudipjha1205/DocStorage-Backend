@@ -17,6 +17,8 @@ urlpatterns = [
         path('account_status/',account_status,name="Account Status"),
         path('reset_password/', reset_password, name="Password Reset Method"),
         path('forget_password/', forget_password, name="Forget password link sending"),
+        path('active_status/',activeStatus,name="Account Status"),
+        path('recordPayment/',recordPayment,name="Record Payment"),
         ]
 
 

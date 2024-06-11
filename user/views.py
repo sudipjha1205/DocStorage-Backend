@@ -29,7 +29,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
 from datetime import datetime
-from .models import CustomUser,KYC,UploadedFile,ActionsTaken
+from .models import CustomUser,KYC,UploadedFile,ActionsTaken,PaymentRecord,ActiveStatus
 from .serializers import *
 from .EmailBackend import EmailBackend
 from DocStorage.settings import EMAIL_HOST_USER
@@ -382,3 +382,52 @@ def forget_password(request):
         print(e)
         return JsonResponse({"message": "Something went wrong"})
 
+@api_view(['POST'])
+def recordPayment(request):
+    if request.method == 'POST':
+        user = request.data.get('user')
+        transaction_id = request.data.get('transaction_id')
+
+        try:
+            user_instance = User.objects.get(username=user)
+
+            ##recording the payment made by the user
+            payment_record = PaymentRecord.objects.create(user=user_instance.username, transaction_id=transaction_id)
+
+            try:
+                ##changing the subscription status to true
+                user_status = ActiveStatus.objects.get(user=user_instance)
+
+                user_status.paymentStatus = "True"
+                user_status.save()
+
+                return JsonResponse({"message": "Payment Successful"})
+            except ActiveStatus.DoesNotExist:
+                return JsonResponse({"message": "User status not found"})
+            except Exception as e:
+                print("inside error", e)
+                return JsonResponse({"message": "Payment Failed"})
+        except User.DoesNotExist:
+            return JsonResponse({"message": "Please Register first to make a payment"})
+        except Exception as e:
+            print("The error is", str(e))
+            return JsonResponse({"message": "Payment Failed"})
+    return JsonResponse({"message": "Incorrect request method"})
+
+@api_view(['POST'])
+def activeStatus(request):
+    user = request.data.get('email_id')
+
+    try:
+        status = ActiveStatus.objects.filter(user=user)
+
+        if status.exists():
+            user_status = status.first().paymentStatus
+
+            return JsonResponse({"message":"{}".format(user_status)})
+        else:
+            return JsonResponse({"message":"User doesn't exist"})
+    except Exception as e:
+        print(e)
+        #return HttpResponse("{}".format(e))
+        return JsonResponse({"message":"Error occured"})

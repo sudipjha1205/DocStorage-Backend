@@ -52,3 +52,15 @@ class ActionsTaken(models.Model):
 
     def __str__(self):
         return f"{self.consumer_number} {self.user} - {self.action} - {self.last_modified_time}"
+
+class PaymentRecord(models.Model):
+    user = models.CharField(max_length=255)
+    transaction_id = models.CharField(max_length=255,primary_key=True)
+    created_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} did a transaction with transaction_id - {self.transaction_id} at {created_at}"
+
+class ActiveStatus(models.Model):
+    user = models.CharField(max_length=255,primary_key=True)
+    paymentStatus = models.CharField(max_length=10)
