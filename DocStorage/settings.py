@@ -96,7 +96,7 @@ DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+'''
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -104,6 +104,20 @@ DATABASES = {
         'USER': 'sudip',
         'PASSWORD': 'Sud1p_jha',
         'HOST': 'docstorage.cb8ugc22yrnh.ap-south-1.rds.amazonaws.com',
+        'PORT': '3306',
+    }
+}
+
+'''
+## TEST DATABASE ##
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'docstorage',
+        'USER': 'sudip',
+        'PASSWORD': 'Sud1p_jha',
+        'HOST': 'localhost',
         'PORT': '3306',
     }
 }
