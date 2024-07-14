@@ -103,7 +103,7 @@ DATABASES = {
         'NAME': 'docstorage',
         'USER': 'sudip',
         'PASSWORD': 'Sud1p_jha',
-        'HOST': 'docstorage2.cb8ugc22yrnh.ap-south-1.rds.amazonaws.com',
+        'HOST': 'docstorage.cb8ugc22yrnh.ap-south-1.rds.amazonaws.com',
         'PORT': '3306',
     }
 }
